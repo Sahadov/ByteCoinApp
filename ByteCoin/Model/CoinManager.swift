@@ -1,21 +1,56 @@
 //
-//  CoinManager.swift
+//  CurrencyData.swift
 //  ByteCoin
 //
-//  Created by Angela Yu on 11/09/2019.
-//  Copyright © 2019 The App Brewery. All rights reserved.
+//  Created by Дмитрий Волков on 22.06.2024.
 //
+
 
 import Foundation
 
 struct CoinManager {
     
     let baseURL = "https://rest.coinapi.io/v1/exchangerate/BTC"
-    let apiKey = "YOUR_API_KEY_HERE"
+    let apiKey = "86afa338-6818-40ed-9bbd-5de83c3a2663"
     
     let currencyArray = ["AUD", "BRL","CAD","CNY","EUR","GBP","HKD","IDR","ILS","INR","JPY","MXN","NOK","NZD","PLN","RON","RUB","SEK","SGD","USD","ZAR"]
 
     func getCoinPrice(for currence: String) {
+        let urlString = "\(baseURL)/\(currence)?apikey=\(apiKey)"
+        performCoinRequest(with: urlString)
         
     }
+    
+    func performCoinRequest(with urlString: String){
+            if let url = URL(string: urlString) {
+                let session = URLSession(configuration: .default)
+                let task = session.dataTask(with: url) { data, response, error in
+                    if error != nil {
+                        //self.delegate?.didFailWithError(error: error!)
+                        return
+                    }
+                    if let safeData = data {
+                        if let currency = self.parseJSON(safeData) {
+                            //delegate?.didUpdateWeather(self, weather: weather)
+                            print("запрос сделан \(currency)")
+                        }
+                    }
+                }
+                task.resume()
+            }
+        }
+    
+    func parseJSON(_ currencyData: Data) -> Double? {
+            let decoder = JSONDecoder()
+            do {
+                let decodedData = try decoder.decode(CurrencyData.self, from: currencyData)
+                let rate = decodedData.rate
+                return rate
+            } catch {
+                //delegate?.didFailWithError(error: error)
+                return nil
+            }
+        }
+    
 }
+
